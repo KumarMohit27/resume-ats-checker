@@ -48,24 +48,81 @@ export default function Home() {
           </div>
 
           {/* Developer Profile */}
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 overflow-hidden rounded-full border-2 border-white bg-slate-100 shadow-md ring-1 ring-slate-200">
-              <img
-                src="/profile.jpeg"
-                alt="Kumar Mohit"
-                className="h-full w-full object-cover object-top"
-              />
-            </div>
+          {/* Developer Profile */}
 
-            <div className="hidden leading-tight sm:block">
-              <p className="text-xs font-medium text-slate-500">
-                Made by
-              </p>
-              <p className="text-sm font-bold text-blue-600">
-                KUMAR MOHIT
-              </p>
-            </div>
-          </div>
+<div className="relative">
+
+  {/* Message + Arrow */}
+  <div className="absolute right-full top-1/2 mr-4 hidden -translate-y-1/2 items-center md:flex">
+
+    {/* Message */}
+    <div className="animate-[float_3s_ease-in-out_infinite] rounded-xl bg-blue-600 px-4 py-2 text-center text-xs font-bold leading-4 text-white shadow-lg shadow-blue-600/25">
+      Click here to view
+      <br />
+      developer
+    </div>
+
+    {/* Arrow */}
+    <svg
+      className="h-12 w-14 text-blue-600"
+      viewBox="0 0 100 70"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M5 35 C35 35, 55 35, 80 20"
+        stroke="currentColor"
+        strokeWidth="7"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M65 18 L82 18 L76 34"
+        stroke="currentColor"
+        strokeWidth="7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+
+  </div>
+
+
+  {/* Clickable Profile */}
+
+  <Link
+    href="/about-me"
+    className="group flex items-center gap-3 rounded-xl px-2 py-1 transition hover:bg-blue-50"
+  >
+
+    {/* Photo */}
+    <div className="h-12 w-12 overflow-hidden rounded-full border-2 border-white bg-slate-100 shadow-md ring-1 ring-slate-200 transition duration-300 group-hover:scale-105 group-hover:ring-blue-400">
+
+      <img
+        src="/profile.jpeg"
+        alt="Kumar Mohit"
+        className="h-full w-full object-cover object-top"
+      />
+
+    </div>
+
+
+    {/* Name */}
+    <div className="hidden leading-tight sm:block">
+
+      <p className="text-xs font-medium text-slate-500">
+        Made by
+      </p>
+
+      <p className="text-sm font-bold text-blue-600">
+        KUMAR MOHIT
+      </p>
+
+    </div>
+
+  </Link>
+
+</div>
         </div>
       </nav>
 
@@ -472,26 +529,9 @@ export default function Home() {
           </div>
 
 
-          <div className="flex items-center gap-3">
+          
 
-            <div className="h-10 w-10 overflow-hidden rounded-full border-2 border-white shadow-md ring-1 ring-slate-200">
-              <img
-                src="/profile.jpg"
-                alt="Kumar Mohit"
-                className="h-full w-full object-cover object-top"
-              />
-            </div>
-
-            <div>
-              <p className="text-xs text-slate-500">
-                Made by
-              </p>
-              <p className="text-sm font-bold text-blue-600">
-                KUMAR MOHIT
-              </p>
-            </div>
-
-          </div>
+         
 
         </div>
 

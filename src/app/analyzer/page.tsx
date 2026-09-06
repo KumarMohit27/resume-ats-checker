@@ -86,48 +86,86 @@ export default function AnalyzerPage() {
     setLoading(true);
 
     try {
-      const formData = new FormData();
+      // ==========================================
+      // ATS ANALYSIS ONLY
+      // ==========================================
 
-      formData.append("resume", selectedFile);
-      formData.append("careerField", careerField);
-      formData.append("jobDescription", jobDescription);
+      const atsFormData = new FormData();
 
-      const response = await fetch("/api/analyze", {
+      atsFormData.append("resume", selectedFile);
+      atsFormData.append("careerField", careerField);
+      atsFormData.append("jobDescription", jobDescription);
+
+      const atsResponse = await fetch("/api/analyze", {
         method: "POST",
-        body: formData,
+        body: atsFormData,
       });
 
-      const data = await response.json();
+      const atsData = await atsResponse.json();
 
-      if (!response.ok || !data.success) {
-        alert(data.error || "Analysis failed.");
+      if (!atsResponse.ok || !atsData.success) {
+        alert(atsData.error || "ATS analysis failed.");
         return;
       }
 
-      setAnalysis(data.analysis);
-      setShowAdvanced(false);
+      // ==========================================
+      // SAVE RESUME FOR AI PAGE
+      // ==========================================
 
-      setTimeout(() => {
-        document
-          .getElementById("results")
-          ?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
+      const fileData = await fileToBase64(selectedFile);
+
+      sessionStorage.setItem(
+        "resumeScoreAIData",
+        JSON.stringify({
+          fileName: selectedFile.name,
+          fileType: selectedFile.type,
+          fileData,
+          careerField,
+          jobDescription,
+        })
+      );
+
+      // ==========================================
+      // SHOW ATS RESULTS
+      // ==========================================
+
+      setAnalysis(atsData.analysis);
     } catch (error) {
-      console.error(error);
-      alert("Something went wrong. Please try again.");
+      console.error("ATS analysis error:", error);
+
+      alert(
+        "Something went wrong while analyzing your resume. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  const handleNewResume = () => {
+    setAnalysis(null);
+    setSelectedFile(null);
+    setCareerField("");
+    setJobDescription("");
+    setShowAdvanced(false);
+
+    sessionStorage.removeItem("resumeScoreAIData");
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
+
       {/* =====================================================
           NAVBAR
       ===================================================== */}
 
       <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
+
           <Link
             href="/"
             className="text-2xl font-bold tracking-tight text-blue-600"
@@ -141,16 +179,19 @@ export default function AnalyzerPage() {
           >
             ← Home
           </Link>
+
         </div>
       </nav>
+
 
       {/* =====================================================
           PAGE HEADER
       ===================================================== */}
 
       <section className="mx-auto max-w-5xl px-5 pb-8 pt-10 text-center md:px-8">
+
         <div className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700">
-          ✨ AI-Powered Resume Analysis
+          📊 ATS Resume Analyzer
         </div>
 
         <h1 className="mt-5 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
@@ -158,10 +199,12 @@ export default function AnalyzerPage() {
         </h1>
 
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
-          Upload your resume and see how well it performs against ATS
-          requirements and your target career.
+          Upload your resume and discover how well it performs against
+          ATS requirements and your target career.
         </p>
+
       </section>
+
 
       {/* =====================================================
           ANALYZER FORM
@@ -169,10 +212,13 @@ export default function AnalyzerPage() {
 
       {!analysis && (
         <section className="mx-auto max-w-4xl px-5 pb-16 md:px-8">
+
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+
             {/* UPLOAD */}
 
             <div>
+
               <label className="mb-3 block text-sm font-bold text-slate-800">
                 Upload Resume
               </label>
@@ -181,6 +227,7 @@ export default function AnalyzerPage() {
                 htmlFor="resume-upload"
                 className="group block cursor-pointer rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center transition hover:border-blue-500 hover:bg-blue-50/40"
               >
+
                 <div className="text-4xl transition group-hover:scale-110">
                   📄
                 </div>
@@ -200,10 +247,13 @@ export default function AnalyzerPage() {
                   onChange={handleFileChange}
                   className="hidden"
                 />
+
               </label>
+
 
               {selectedFile && (
                 <div className="mt-3 flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-800">
+
                   <span>📄</span>
 
                   <span className="truncate">
@@ -213,13 +263,17 @@ export default function AnalyzerPage() {
                   <span className="ml-auto text-green-600">
                     ✓
                   </span>
+
                 </div>
               )}
+
             </div>
 
-            {/* CAREER */}
+
+            {/* CAREER FIELD */}
 
             <div className="mt-6">
+
               <label
                 htmlFor="career"
                 className="mb-2 block text-sm font-bold text-slate-800"
@@ -233,6 +287,7 @@ export default function AnalyzerPage() {
                 onChange={(e) => setCareerField(e.target.value)}
                 className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
+
                 <option value="">
                   Select your career field
                 </option>
@@ -264,13 +319,18 @@ export default function AnalyzerPage() {
                 <option value="Cybersecurity">
                   Cybersecurity
                 </option>
+
               </select>
+
             </div>
+
 
             {/* JOB DESCRIPTION */}
 
             <div className="mt-6">
+
               <div className="mb-2 flex items-center justify-between">
+
                 <label
                   htmlFor="job-description"
                   className="text-sm font-bold text-slate-800"
@@ -281,6 +341,7 @@ export default function AnalyzerPage() {
                 <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500">
                   Optional
                 </span>
+
               </div>
 
               <textarea
@@ -291,9 +352,11 @@ export default function AnalyzerPage() {
                 placeholder="Paste the job description here to get a Job Match Score..."
                 className="w-full resize-y rounded-xl border border-slate-300 px-4 py-3 text-sm leading-6 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
+
             </div>
 
-            {/* BUTTON */}
+
+            {/* ATS BUTTON */}
 
             <button
               onClick={handleAnalyze}
@@ -306,12 +369,14 @@ export default function AnalyzerPage() {
             </button>
 
             <p className="mt-3 text-center text-xs text-slate-400">
-              Your resume is analyzed automatically using ATS-focused
-              checks.
+              This step performs ATS-focused resume checks.
             </p>
+
           </div>
+
         </section>
       )}
+
 
       {/* =====================================================
           RESULTS
@@ -322,18 +387,21 @@ export default function AnalyzerPage() {
           id="results"
           className="mx-auto max-w-7xl px-5 pb-16 md:px-8"
         >
-          {/* =================================================
-              RESULT HEADER
-          ================================================= */}
+
+          {/* RESULT HEADER */}
 
           <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+
             <div>
+
               <div className="flex items-center gap-2 text-sm font-bold text-green-600">
+
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100">
                   ✓
                 </span>
 
                 ANALYSIS COMPLETE
+
               </div>
 
               <h2 className="mt-2 text-3xl font-bold tracking-tight">
@@ -343,40 +411,96 @@ export default function AnalyzerPage() {
               <p className="mt-1 text-sm text-slate-500">
                 {analysis.careerField}
               </p>
+
             </div>
 
-            <button
-              onClick={() => {
-                setAnalysis(null);
-                setSelectedFile(null);
 
-                window.scrollTo({
-                  top: 0,
-                  behavior: "smooth",
-                });
-              }}
+            <button
+              onClick={handleNewResume}
               className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:border-blue-400 hover:text-blue-600"
             >
               ↻ Analyze Another Resume
             </button>
+
           </div>
+
+
+          {/* =================================================
+              AI BUTTON
+          ================================================= */}
+
+          <div className="mb-6 overflow-hidden rounded-3xl border border-blue-200 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-6 shadow-lg md:p-8">
+
+            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+
+              <div className="text-white">
+
+                <div className="flex items-center gap-3">
+
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-2xl">
+                    🤖
+                  </div>
+
+                  <div>
+
+                    <h2 className="text-2xl font-bold">
+                      Want a Deeper Resume Analysis?
+                    </h2>
+
+                    <p className="mt-1 text-sm text-blue-100">
+                      Let Gemini AI review your resume in detail.
+                    </p>
+
+                  </div>
+
+                </div>
+
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-blue-50">
+                  Get AI-powered feedback on your summary, experience,
+                  projects, achievements, skills and job compatibility.
+                </p>
+
+              </div>
+
+
+              <Link
+                href="/ai-analysis"
+                className="shrink-0 rounded-2xl bg-white px-6 py-4 text-center text-sm font-bold text-blue-700 shadow-md transition hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-lg"
+              >
+                🤖 Check Your Resume with AI →
+              </Link>
+
+            </div>
+
+          </div>
+
 
           {/* =================================================
               TOP SCORE AREA
           ================================================= */}
 
           <div className="grid gap-5 lg:grid-cols-3">
+
             {/* ATS SCORE */}
 
-            <ATSScoreCard score={analysis.score} rating={analysis.rating} />
+            <ATSScoreCard
+              score={analysis.score}
+              rating={analysis.rating}
+            />
+
 
             {/* JOB MATCH */}
 
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2 md:p-7">
+
               {jobDescription.trim() && analysis.jobMatch ? (
+
                 <>
+
                   <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
+
                     <div>
+
                       <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
                         Job Compatibility
                       </p>
@@ -389,9 +513,12 @@ export default function AnalyzerPage() {
                         See how closely your resume matches the
                         skills required for this position.
                       </p>
+
                     </div>
 
+
                     <div className="text-center sm:text-right">
+
                       <div className="text-5xl font-black text-blue-600">
                         {analysis.jobMatch.score}
                         <span className="text-xl font-medium text-slate-400">
@@ -400,23 +527,26 @@ export default function AnalyzerPage() {
                       </div>
 
                       <p
-                        className={`mt-1 text-sm font-bold ${
-                          getMatchColor(analysis.jobMatch.score)
-                        }`}
+                        className={`mt-1 text-sm font-bold ${getMatchColor(
+                          analysis.jobMatch.score
+                        )}`}
                       >
                         {getMatchLabel(analysis.jobMatch.score)}
                       </p>
+
                     </div>
+
                   </div>
 
-                  {/* JOB MATCH BAR */}
 
                   <div className="mt-5">
+
                     <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+
                       <div
-                        className={`h-full rounded-full transition-all duration-700 ${
-                          getScoreBarColor(analysis.jobMatch.score)
-                        }`}
+                        className={`h-full rounded-full transition-all duration-700 ${getScoreBarColor(
+                          analysis.jobMatch.score
+                        )}`}
                         style={{
                           width: `${Math.min(
                             100,
@@ -424,12 +554,14 @@ export default function AnalyzerPage() {
                           )}%`,
                         }}
                       />
+
                     </div>
+
                   </div>
 
-                  {/* MINI STATS */}
 
                   <div className="mt-5 grid grid-cols-3 gap-3">
+
                     <MiniStat
                       value={
                         analysis.jobMatch.requiredSkills.length
@@ -452,10 +584,15 @@ export default function AnalyzerPage() {
                       label="Missing"
                       red
                     />
+
                   </div>
+
                 </>
+
               ) : (
+
                 <div className="flex min-h-[230px] flex-col items-center justify-center text-center">
+
                   <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-3xl">
                     🎯
                   </div>
@@ -468,16 +605,20 @@ export default function AnalyzerPage() {
                     Add a job description before analyzing your
                     resume to compare your skills with the role.
                   </p>
+
                 </div>
+
               )}
+
             </div>
+
           </div>
 
-          {/* =================================================
-              QUICK STATS
-          ================================================= */}
+
+          {/* QUICK STATS */}
 
           <div className="mt-5 grid grid-cols-2 gap-4 md:grid-cols-4">
+
             <QuickStat
               value={analysis.wordCount}
               label="Resume Words"
@@ -499,29 +640,31 @@ export default function AnalyzerPage() {
               label="Missing Keywords"
               red
             />
+
           </div>
 
-          {/* =================================================
-              FIX THESE FIRST
-          ================================================= */}
+
+          {/* FIX THESE FIRST */}
 
           <PrioritySection analysis={analysis} />
 
-          {/* =================================================
-              SCORE BREAKDOWN + ATS CHECKS
-          ================================================= */}
+
+          {/* SCORE BREAKDOWN + ATS CHECKS */}
 
           <div className="mt-5 grid gap-5 lg:grid-cols-2">
-            {/* SCORE BREAKDOWN */}
 
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+
               <div className="mb-5">
+
                 <div className="flex items-center gap-2">
+
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
                     📊
                   </div>
 
                   <div>
+
                     <h3 className="text-xl font-bold">
                       Score Breakdown
                     </h3>
@@ -529,9 +672,13 @@ export default function AnalyzerPage() {
                     <p className="text-sm text-slate-500">
                       Factors contributing to your ATS score.
                     </p>
+
                   </div>
+
                 </div>
+
               </div>
+
 
               <ScoreBar
                 label="Contact Information"
@@ -586,18 +733,19 @@ export default function AnalyzerPage() {
                 value={analysis.breakdown.length}
                 max={5}
               />
+
             </div>
 
-            {/* ATS CHECKS */}
 
             <ATSChecks analysis={analysis} />
+
           </div>
 
-          {/* =================================================
-              KEYWORD ANALYSIS
-          ================================================= */}
+
+          {/* KEYWORD ANALYSIS */}
 
           <div className="mt-5 grid gap-5 lg:grid-cols-2">
+
             <SkillBox
               title="✅ Matching Skills & Keywords"
               skills={analysis.matchedKeywords}
@@ -611,13 +759,14 @@ export default function AnalyzerPage() {
               type="red"
               emptyText="No relevant skills are missing."
             />
+
           </div>
 
-          {/* =================================================
-              STRENGTHS + IMPROVEMENTS
-          ================================================= */}
+
+          {/* STRENGTHS + IMPROVEMENTS */}
 
           <div className="mt-5 grid gap-5 lg:grid-cols-2">
+
             <ResultBox
               title="💪 Strengths"
               items={analysis.strengths}
@@ -629,18 +778,21 @@ export default function AnalyzerPage() {
               items={analysis.improvements}
               type="blue"
             />
+
           </div>
 
-          {/* =================================================
-              JOB SKILLS
-          ================================================= */}
+
+          {/* JOB SKILLS */}
 
           {jobDescription.trim() &&
             analysis.jobMatch &&
             (analysis.jobMatch.matchedSkills.length > 0 ||
               analysis.jobMatch.missingSkills.length > 0) && (
+
               <div className="mt-5">
+
                 <div className="mb-4">
+
                   <h3 className="text-xl font-bold">
                     🎯 Job Skill Analysis
                   </h3>
@@ -648,9 +800,12 @@ export default function AnalyzerPage() {
                   <p className="mt-1 text-sm text-slate-500">
                     Skills detected from the job description.
                   </p>
+
                 </div>
 
+
                 <div className="grid gap-5 lg:grid-cols-2">
+
                   <SkillBox
                     title="🎯 Matched Job Skills"
                     skills={analysis.jobMatch.matchedSkills}
@@ -664,25 +819,30 @@ export default function AnalyzerPage() {
                     type="red"
                     emptyText="All detected job skills are present."
                   />
+
                 </div>
+
               </div>
             )}
 
-          {/* =================================================
-              ADVANCED ANALYSIS
-          ================================================= */}
+
+          {/* ADVANCED ANALYSIS */}
 
           <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
               className="flex w-full items-center justify-between p-5 text-left transition hover:bg-slate-50 md:p-6"
             >
+
               <div className="flex items-center gap-3">
+
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">
                   🔍
                 </div>
 
                 <div>
+
                   <h3 className="text-xl font-bold">
                     Advanced Resume Analysis
                   </h3>
@@ -691,27 +851,39 @@ export default function AnalyzerPage() {
                     Resume sections, action verbs, achievements and
                     warnings.
                   </p>
+
                 </div>
+
               </div>
+
 
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xl font-bold text-slate-500">
                 {showAdvanced ? "−" : "+"}
               </span>
+
             </button>
 
+
             {showAdvanced && (
+
               <div className="border-t border-slate-200 p-5 md:p-6">
+
                 <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+
                   {/* PRESENT SECTIONS */}
 
                   <div className="rounded-2xl bg-slate-50 p-5">
+
                     <h4 className="font-bold">
                       📑 Resume Sections
                     </h4>
 
                     <div className="mt-4 space-y-2">
+
                       {analysis.sections.length > 0 ? (
+
                         analysis.sections.map((section, index) => (
+
                           <div
                             key={index}
                             className="text-sm text-green-700"
@@ -721,26 +893,37 @@ export default function AnalyzerPage() {
                               {section}
                             </span>
                           </div>
+
                         ))
+
                       ) : (
+
                         <p className="text-sm text-slate-500">
                           No sections detected.
                         </p>
+
                       )}
+
                     </div>
+
                   </div>
+
 
                   {/* MISSING SECTIONS */}
 
                   <div className="rounded-2xl bg-slate-50 p-5">
+
                     <h4 className="font-bold">
                       📌 Missing Sections
                     </h4>
 
                     <div className="mt-4 space-y-2">
+
                       {analysis.missingSections.length > 0 ? (
+
                         analysis.missingSections.map(
                           (section, index) => (
+
                             <div
                               key={index}
                               className="text-sm text-red-600"
@@ -750,46 +933,65 @@ export default function AnalyzerPage() {
                                 {section}
                               </span>
                             </div>
+
                           )
                         )
+
                       ) : (
+
                         <p className="text-sm text-green-600">
                           ✓ All important sections are present.
                         </p>
+
                       )}
+
                     </div>
+
                   </div>
+
 
                   {/* ACTION VERBS */}
 
                   <div className="rounded-2xl bg-slate-50 p-5">
+
                     <h4 className="font-bold">
                       🚀 Action Verbs
                     </h4>
 
                     <div className="mt-4 flex flex-wrap gap-2">
+
                       {analysis.detectedActionVerbs.length > 0 ? (
+
                         analysis.detectedActionVerbs.map(
                           (verb, index) => (
+
                             <span
                               key={index}
                               className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700"
                             >
                               {verb}
                             </span>
+
                           )
                         )
+
                       ) : (
+
                         <p className="text-sm text-slate-500">
                           No strong action verbs detected.
                         </p>
+
                       )}
+
                     </div>
+
                   </div>
+
 
                   {/* ACHIEVEMENTS */}
 
                   <div className="rounded-2xl bg-slate-50 p-5">
+
                     <h4 className="font-bold">
                       📈 Quantifiable Achievements
                     </h4>
@@ -805,52 +1007,102 @@ export default function AnalyzerPage() {
                         ? "✓ Your resume contains measurable information."
                         : "Consider adding measurable results such as percentages, accuracy, users, performance improvements, or numbers."}
                     </p>
+
                   </div>
+
 
                   {/* WARNINGS */}
 
                   <div className="rounded-2xl bg-orange-50 p-5 md:col-span-2">
+
                     <h4 className="font-bold text-orange-800">
                       ⚠️ Warnings
                     </h4>
 
                     {analysis.warnings.length > 0 ? (
+
                       <div className="mt-4 grid gap-2 sm:grid-cols-2">
+
                         {analysis.warnings.map(
                           (warning, index) => (
+
                             <div
                               key={index}
                               className="rounded-xl border border-orange-100 bg-white p-3 text-sm leading-5 text-slate-700"
                             >
                               {warning}
                             </div>
+
                           )
                         )}
+
                       </div>
+
                     ) : (
+
                       <p className="mt-3 text-sm text-green-600">
                         ✓ No major warnings.
                       </p>
+
                     )}
+
                   </div>
+
                 </div>
+
               </div>
+
             )}
+
           </div>
 
-          {/* =================================================
-              FOOTER
-          ================================================= */}
+
+          {/* FOOTER */}
 
           <p className="mt-6 text-center text-xs leading-5 text-slate-400">
             ResumeScore provides automated ATS analysis. Only add
             skills and experience that you genuinely have.
           </p>
+
         </section>
       )}
+
     </main>
   );
 }
+
+
+/* =========================================================
+   FILE TO BASE64
+========================================================= */
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const result = reader.result;
+
+      if (typeof result !== "string") {
+        reject(new Error("Could not read file."));
+        return;
+      }
+
+      // Remove "data:...;base64," prefix
+      const base64 = result.split(",")[1];
+
+      resolve(base64);
+    };
+
+    reader.onerror = () => {
+      reject(new Error("Could not convert file."));
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
 
 /* =========================================================
    ATS SCORE CARD
@@ -903,17 +1155,19 @@ function ATSScoreCard({
 
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-sm md:p-7">
+
       <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
         Overall ATS Score
       </p>
 
-      {/* CIRCULAR SCORE */}
-
       <div className="mt-5 flex justify-center">
+
         <div
           className={`relative flex h-40 w-40 items-center justify-center rounded-full border-[12px] bg-white shadow-inner ${ringColor}`}
         >
+
           <div>
+
             <div
               className={`text-5xl font-black tracking-tight ${scoreColor}`}
             >
@@ -923,33 +1177,40 @@ function ATSScoreCard({
             <div className="text-sm font-medium text-slate-400">
               /100
             </div>
+
           </div>
+
         </div>
+
       </div>
 
       <div className={`mt-4 text-lg font-bold ${scoreColor}`}>
         {rating}
       </div>
 
-      {/* PROGRESS */}
-
       <div className="mx-auto mt-5 max-w-xs">
+
         <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+
           <div
             className={`h-full rounded-full transition-all duration-700 ${progressColor}`}
             style={{
               width: `${safeScore}%`,
             }}
           />
+
         </div>
+
       </div>
 
       <p className="mx-auto mt-4 max-w-xs text-xs leading-5 text-slate-500">
         {explanation}
       </p>
+
     </div>
   );
 }
+
 
 /* =========================================================
    PRIORITY SECTION
@@ -1027,9 +1288,13 @@ function PrioritySection({
 
   return (
     <div className="mt-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-7">
+
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+
         <div>
+
           <div className="flex items-center gap-2">
+
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50">
               🔥
             </div>
@@ -1037,12 +1302,14 @@ function PrioritySection({
             <h3 className="text-xl font-bold">
               Fix These First
             </h3>
+
           </div>
 
           <p className="mt-2 text-sm text-slate-500">
             The most important improvements you can make to your
             resume right now.
           </p>
+
         </div>
 
         {visiblePriorities.length > 0 && (
@@ -1050,21 +1317,29 @@ function PrioritySection({
             {visiblePriorities.length} priorities
           </span>
         )}
+
       </div>
 
+
       {visiblePriorities.length > 0 ? (
+
         <div className="mt-5 grid gap-3">
+
           {visiblePriorities.map((item, index) => (
+
             <div
               key={index}
               className="flex gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4"
             >
+
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-sm font-black text-slate-700 shadow-sm">
                 {index + 1}
               </div>
 
               <div className="min-w-0 flex-1">
+
                 <div className="flex flex-wrap items-center gap-2">
+
                   <h4 className="font-bold text-slate-800">
                     {item.title}
                   </h4>
@@ -1078,23 +1353,33 @@ function PrioritySection({
                   >
                     {item.priority}
                   </span>
+
                 </div>
 
                 <p className="mt-1 text-sm leading-5 text-slate-600">
                   {item.description}
                 </p>
+
               </div>
+
             </div>
+
           ))}
+
         </div>
+
       ) : (
+
         <div className="mt-5 rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-medium text-green-700">
           ✓ No major improvement priorities were detected.
         </div>
+
       )}
+
     </div>
   );
 }
+
 
 /* =========================================================
    ATS CHECKS
@@ -1105,6 +1390,7 @@ function ATSChecks({
 }: {
   analysis: Analysis;
 }) {
+
   const checks = [
     {
       title: "Contact Information",
@@ -1114,6 +1400,7 @@ function ATSChecks({
           ? "Contact details appear to be present."
           : "Review your phone number, email and contact details.",
     },
+
     {
       title: "Resume Sections",
       passed: analysis.breakdown.sections >= 15,
@@ -1122,6 +1409,7 @@ function ATSChecks({
           ? "Important resume sections were detected."
           : "Some important resume sections may be missing.",
     },
+
     {
       title: "Career Keywords",
       passed: analysis.breakdown.keywords >= 24,
@@ -1130,6 +1418,7 @@ function ATSChecks({
           ? "Good coverage of relevant career keywords."
           : "Consider adding more relevant career keywords.",
     },
+
     {
       title: "Experience",
       passed: analysis.breakdown.experience >= 5,
@@ -1138,6 +1427,7 @@ function ATSChecks({
           ? "Experience information looks reasonably complete."
           : "Strengthen your experience descriptions.",
     },
+
     {
       title: "Projects",
       passed: analysis.breakdown.projects >= 5,
@@ -1146,6 +1436,7 @@ function ATSChecks({
           ? "Projects are contributing positively to your resume."
           : "Consider adding or improving relevant projects.",
     },
+
     {
       title: "Education",
       passed: analysis.breakdown.education >= 5,
@@ -1154,6 +1445,7 @@ function ATSChecks({
           ? "Education information was detected."
           : "Review your education details.",
     },
+
     {
       title: "Action Verbs",
       passed: analysis.breakdown.actionVerbs >= 3,
@@ -1162,6 +1454,7 @@ function ATSChecks({
           ? "Strong action-oriented language was detected."
           : "Use stronger action verbs in your bullet points.",
     },
+
     {
       title: "Measurable Achievements",
       passed: analysis.hasQuantifiableAchievements,
@@ -1169,6 +1462,7 @@ function ATSChecks({
         ? "Measurable information was detected."
         : "Add numbers or measurable outcomes where possible.",
     },
+
     {
       title: "Resume Length",
       passed: analysis.breakdown.length >= 3,
@@ -1179,18 +1473,25 @@ function ATSChecks({
     },
   ];
 
-  const passedCount = checks.filter((check) => check.passed).length;
+  const passedCount = checks.filter(
+    (check) => check.passed
+  ).length;
 
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-7">
+
       <div className="flex items-start justify-between gap-4">
+
         <div>
+
           <div className="flex items-center gap-2">
+
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50">
               📄
             </div>
 
             <div>
+
               <h3 className="text-xl font-bold">
                 ATS Readiness Checks
               </h3>
@@ -1198,21 +1499,29 @@ function ATSChecks({
               <p className="text-sm text-slate-500">
                 Important resume quality checks.
               </p>
+
             </div>
+
           </div>
+
         </div>
 
         <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
           {passedCount}/{checks.length}
         </div>
+
       </div>
 
+
       <div className="mt-5 space-y-2">
+
         {checks.map((check, index) => (
+
           <div
             key={index}
             className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3"
           >
+
             <span
               className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black ${
                 check.passed
@@ -1224,6 +1533,7 @@ function ATSChecks({
             </span>
 
             <div className="min-w-0">
+
               <p className="text-sm font-bold text-slate-800">
                 {check.title}
               </p>
@@ -1231,13 +1541,19 @@ function ATSChecks({
               <p className="mt-0.5 text-xs leading-5 text-slate-500">
                 {check.detail}
               </p>
+
             </div>
+
           </div>
+
         ))}
+
       </div>
+
     </div>
   );
 }
+
 
 /* =========================================================
    SCORE BAR
@@ -1252,6 +1568,7 @@ function ScoreBar({
   value: number;
   max: number;
 }) {
+
   const percentage = Math.min(
     100,
     Math.max(0, Math.round((value / max) * 100))
@@ -1259,7 +1576,9 @@ function ScoreBar({
 
   return (
     <div className="mb-4">
+
       <div className="mb-1.5 flex items-center justify-between gap-3 text-sm">
+
         <span className="font-medium text-slate-700">
           {label}
         </span>
@@ -1267,9 +1586,11 @@ function ScoreBar({
         <span className="shrink-0 font-bold text-slate-800">
           {value}/{max}
         </span>
+
       </div>
 
       <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+
         <div
           className={`h-full rounded-full transition-all duration-500 ${getScoreBarColor(
             percentage
@@ -1278,10 +1599,13 @@ function ScoreBar({
             width: `${percentage}%`,
           }}
         />
+
       </div>
+
     </div>
   );
 }
+
 
 /* =========================================================
    QUICK STAT
@@ -1298,6 +1622,7 @@ function QuickStat({
   green?: boolean;
   red?: boolean;
 }) {
+
   const color = red
     ? "text-red-600"
     : green
@@ -1306,6 +1631,7 @@ function QuickStat({
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md md:p-5">
+
       <div className={`text-2xl font-black md:text-3xl ${color}`}>
         {value}
       </div>
@@ -1313,9 +1639,11 @@ function QuickStat({
       <p className="mt-1 text-xs font-semibold text-slate-500">
         {label}
       </p>
+
     </div>
   );
 }
+
 
 /* =========================================================
    MINI STAT
@@ -1332,6 +1660,7 @@ function MiniStat({
   green?: boolean;
   red?: boolean;
 }) {
+
   const color = red
     ? "text-red-600"
     : green
@@ -1340,6 +1669,7 @@ function MiniStat({
 
   return (
     <div className="rounded-xl bg-slate-50 p-3 text-center">
+
       <div className={`text-xl font-black ${color}`}>
         {value}
       </div>
@@ -1347,9 +1677,11 @@ function MiniStat({
       <div className="mt-0.5 text-xs font-medium text-slate-500">
         {label}
       </div>
+
     </div>
   );
 }
+
 
 /* =========================================================
    SKILL BOX
@@ -1366,6 +1698,7 @@ function SkillBox({
   type: "green" | "red";
   emptyText: string;
 }) {
+
   const styles =
     type === "green"
       ? "border-green-200 bg-green-50 text-green-700"
@@ -1373,33 +1706,49 @@ function SkillBox({
 
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-xl font-bold">{title}</h3>
+
+        <h3 className="text-xl font-bold">
+          {title}
+        </h3>
 
         <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-500">
           {skills.length}
         </span>
+
       </div>
 
+
       {skills.length > 0 ? (
+
         <div className="mt-4 flex max-h-44 flex-wrap gap-2 overflow-y-auto pr-1">
+
           {skills.map((skill, index) => (
+
             <span
               key={index}
               className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${styles}`}
             >
               {skill}
             </span>
+
           ))}
+
         </div>
+
       ) : (
+
         <p className="mt-4 text-sm text-slate-500">
           {emptyText}
         </p>
+
       )}
+
     </div>
   );
 }
+
 
 /* =========================================================
    RESULT BOX
@@ -1414,6 +1763,7 @@ function ResultBox({
   items: string[];
   type: "green" | "blue";
 }) {
+
   const styles =
     type === "green"
       ? "border-green-200 bg-green-50"
@@ -1421,33 +1771,47 @@ function ResultBox({
 
   return (
     <div className={`rounded-3xl border p-6 shadow-sm ${styles}`}>
-      <h3 className="text-xl font-bold">{title}</h3>
+
+      <h3 className="text-xl font-bold">
+        {title}
+      </h3>
 
       {items.length > 0 ? (
+
         <div className="mt-4 grid gap-2">
+
           {items.map((item, index) => (
+
             <div
               key={index}
               className="rounded-xl border border-white bg-white p-3 text-sm leading-5 text-slate-700"
             >
               {item}
             </div>
+
           ))}
+
         </div>
+
       ) : (
+
         <p className="mt-4 text-sm text-slate-500">
           Nothing to report.
         </p>
+
       )}
+
     </div>
   );
 }
+
 
 /* =========================================================
    SCORE HELPERS
 ========================================================= */
 
 function getScoreBarColor(score: number) {
+
   if (score >= 80) {
     return "bg-green-500";
   }
@@ -1463,7 +1827,9 @@ function getScoreBarColor(score: number) {
   return "bg-red-500";
 }
 
+
 function getMatchColor(score: number) {
+
   if (score >= 80) {
     return "text-green-600";
   }
@@ -1479,7 +1845,9 @@ function getMatchColor(score: number) {
   return "text-red-600";
 }
 
+
 function getMatchLabel(score: number) {
+
   if (score >= 80) {
     return "Excellent Match";
   }
