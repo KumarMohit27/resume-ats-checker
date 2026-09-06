@@ -1,1013 +1,586 @@
 "use client";
 
-import { useState } from "react";
-
-type Analysis = {
-  score: number;
-  rating: string;
-  careerField: string;
-
-  jobMatch: {
-    score: number;
-    requiredSkills: string[];
-    matchedSkills: string[];
-    missingSkills: string[];
-  };
-
-  wordCount: number;
-
-  matchedKeywords: string[];
-  totalKeywords: number;
-  missingKeywords: string[];
-
-  sections: string[];
-  missingSections: string[];
-
-  detectedActionVerbs: string[];
-
-  hasQuantifiableAchievements: boolean;
-
-  strengths: string[];
-  improvements: string[];
-  warnings: string[];
-
-  breakdown: {
-    contact: number;
-    sections: number;
-    keywords: number;
-    experience: number;
-    projects: number;
-    education: number;
-    actionVerbs: number;
-    quantification: number;
-    length: number;
-  };
-};
+import Link from "next/link";
 
 export default function Home() {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [careerField, setCareerField] = useState("");
-  const [jobDescription, setJobDescription] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [analysis, setAnalysis] = useState<Analysis | null>(null);
-
-  const handleFileChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-
-    if (file) {
-      setSelectedFile(file);
-      setAnalysis(null);
-    }
-  };
-
-  const handleAnalyze = async () => {
-    if (!selectedFile) {
-      alert("Please upload your resume first.");
-      return;
-    }
-
-    if (!careerField) {
-      alert("Please select your career field.");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const formData = new FormData();
-
-      formData.append("resume", selectedFile);
-      formData.append("careerField", careerField);
-      formData.append("jobDescription", jobDescription);
-
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        alert(data.error || "Analysis failed.");
-        return;
-      }
-
-      setAnalysis(data.analysis);
-    } catch (error) {
-      console.error(error);
-      alert("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
+    <main className="min-h-screen bg-white text-slate-900">
 
       {/* ================= NAVBAR ================= */}
+      <nav className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
 
-      <nav className="bg-white border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-6 py-5 flex justify-between items-center">
+          {/* Logo */}
+          <Link href="/" className="text-2xl font-extrabold tracking-tight">
+            <span className="text-slate-900">Resume</span>
+            <span className="text-blue-600">Score</span>
+          </Link>
 
-          <div className="text-2xl font-bold text-blue-600">
-            ResumeScore
+          {/* Navigation */}
+          <div className="hidden items-center gap-9 md:flex">
+            <a
+              href="#home"
+              className="font-medium text-blue-600"
+            >
+              Home
+            </a>
+
+            <Link
+              href="/analyzer"
+              className="font-medium text-slate-600 transition hover:text-blue-600"
+            >
+              Analyzer
+            </Link>
+
+            <a
+              href="#features"
+              className="font-medium text-slate-600 transition hover:text-blue-600"
+            >
+              Features
+            </a>
+
+            <a
+              href="#about"
+              className="font-medium text-slate-600 transition hover:text-blue-600"
+            >
+              About
+            </a>
           </div>
 
-          <div className="text-sm text-slate-500">
-            AI Resume ATS Analyzer
-          </div>
+          {/* Developer Profile */}
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 overflow-hidden rounded-full border-2 border-white bg-slate-100 shadow-md ring-1 ring-slate-200">
+              <img
+                src="/profile.jpeg"
+                alt="Kumar Mohit"
+                className="h-full w-full object-cover object-top"
+              />
+            </div>
 
+            <div className="hidden leading-tight sm:block">
+              <p className="text-xs font-medium text-slate-500">
+                Made by
+              </p>
+              <p className="text-sm font-bold text-blue-600">
+                KUMAR MOHIT
+              </p>
+            </div>
+          </div>
         </div>
       </nav>
 
 
       {/* ================= HERO ================= */}
+      <section
+        id="home"
+        className="relative overflow-hidden bg-gradient-to-br from-white via-blue-50/50 to-indigo-50/70"
+      >
 
-      <section className="max-w-5xl mx-auto px-6 pt-16 pb-10 text-center">
+        {/* Background decorations */}
+        <div className="absolute -left-32 top-20 h-80 w-80 rounded-full bg-blue-200/20 blur-3xl" />
+        <div className="absolute right-0 top-10 h-96 w-96 rounded-full bg-indigo-200/30 blur-3xl" />
 
-        <h1 className="text-5xl font-bold tracking-tight">
-          Check your resume&apos;s ATS score
-        </h1>
+        <div className="relative mx-auto grid max-w-7xl items-center gap-14 px-6 py-20 lg:grid-cols-2 lg:px-8 lg:py-28">
 
-        <p className="mt-5 text-lg text-slate-600">
-          Upload your resume and discover how well it matches your target
-          career.
-        </p>
+          {/* LEFT SIDE */}
+          <div>
 
-
-        {/* ================= UPLOAD BOX ================= */}
-
-        <div className="mt-10 bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
-
-          <label
-            htmlFor="resume-upload"
-            className="block cursor-pointer border-2 border-dashed border-slate-300 rounded-2xl p-10 hover:border-blue-500 transition"
-          >
-
-            <div className="text-4xl mb-4">
-              📄
+            {/* Badge */}
+            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-5 py-2.5 text-sm font-semibold text-blue-600">
+              <span>✦</span>
+              AI-Powered Resume Analysis
             </div>
 
-            <div className="text-lg font-semibold">
-              Upload your resume
-            </div>
+            {/* Heading */}
+          <h1 className="text-5xl font-extrabold tracking-tight text-slate-900 sm:text-6xl lg:text-7xl">
+  Build a Stronger Resume.
+  <span className="block text-blue-600">Get Hired.</span>
+</h1>
 
-            <div className="text-sm text-slate-500 mt-2">
-              PDF or DOCX
-            </div>
-
-            <input
-              id="resume-upload"
-              type="file"
-              accept=".pdf,.docx"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-
-          </label>
-
-
-          {/* SELECTED FILE */}
-
-          {selectedFile && (
-            <div className="mt-5 bg-blue-50 border border-blue-200 rounded-xl p-4 text-blue-700">
-              📄 {selectedFile.name}
-            </div>
-          )}
-
-
-          {/* ================= CAREER FIELD ================= */}
-
-          <div className="mt-6 text-left">
-
-            <label className="block font-semibold mb-2">
-              Target Career Field
-            </label>
-
-            <select
-              value={careerField}
-              onChange={(e) => setCareerField(e.target.value)}
-              className="w-full border border-slate-300 rounded-xl px-4 py-3 bg-white outline-none focus:ring-2 focus:ring-blue-500"
-            >
-
-              <option value="">
-                Select your career field
-              </option>
-
-              <option value="Software Developer">
-                Software Developer
-              </option>
-
-              <option value="AI / Machine Learning Engineer">
-                AI / Machine Learning Engineer
-              </option>
-
-              <option value="Data Scientist">
-                Data Scientist
-              </option>
-
-              <option value="Data Analyst">
-                Data Analyst
-              </option>
-
-              <option value="Web Developer">
-                Web Developer
-              </option>
-
-              <option value="Cloud Engineer">
-                Cloud Engineer
-              </option>
-
-              <option value="Cybersecurity">
-                Cybersecurity
-              </option>
-
-            </select>
-
-          </div>
-
-
-          {/* ================= JOB DESCRIPTION ================= */}
-
-          <div className="mt-6 text-left">
-
-            <label className="block font-semibold mb-2">
-
-              Job Description
-
-              <span className="text-slate-400 font-normal ml-2">
-                (Optional)
-              </span>
-
-            </label>
-
-
-            <textarea
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
-              placeholder="Paste the job description here..."
-              rows={7}
-              className="w-full border border-slate-300 rounded-xl px-4 py-3 bg-white outline-none focus:ring-2 focus:ring-blue-500 resize-y"
-            />
-
-
-            <p className="text-sm text-slate-500 mt-2">
-              Add a job description to compare your resume with the job
-              requirements.
+            {/* Description */}
+            <p className="mt-7 max-w-xl text-lg leading-8 text-slate-600 sm:text-xl">
+              Check your ATS score, find missing keywords, get personalized
+              suggestions and make your resume stand out from the competition.
             </p>
 
+            {/* Buttons */}
+            <div className="mt-9 flex flex-col gap-4 sm:flex-row">
+
+              <Link
+                href="/analyzer"
+                className="group inline-flex items-center justify-center gap-3 rounded-full bg-blue-600 px-8 py-4 text-base font-bold text-white shadow-lg shadow-blue-600/25 transition hover:-translate-y-1 hover:bg-blue-700 hover:shadow-xl"
+              >
+                <span className="text-xl">↑</span>
+                Analyze Your Resume
+                <span className="transition group-hover:translate-x-1">
+                  →
+                </span>
+              </Link>
+
+              <a
+                href="#features"
+                className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-8 py-4 text-base font-bold text-slate-700 transition hover:-translate-y-1 hover:border-blue-300 hover:text-blue-600"
+              >
+                Learn More
+              </a>
+
+            </div>
+
+            {/* Trust points */}
+            <div className="mt-9 flex flex-wrap gap-x-7 gap-y-4 text-sm font-medium text-slate-600">
+
+              <div className="flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                  ✓
+                </span>
+                Free to use
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+                  ⚡
+                </span>
+                Fast & Accurate
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                  ✓
+                </span>
+                100% Secure
+              </div>
+
+            </div>
           </div>
 
 
-          {/* ================= ANALYZE BUTTON ================= */}
+          {/* RIGHT SIDE - PREVIEW DASHBOARD */}
+          <div className="relative">
 
-          <button
-            onClick={handleAnalyze}
-            disabled={loading}
-            className="w-full mt-6 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold py-4 rounded-xl transition"
-          >
+            {/* Glow */}
+            <div className="absolute inset-8 rounded-full bg-blue-300/30 blur-3xl" />
 
-            {loading
-              ? "Analyzing Resume..."
-              : "Analyze My Resume"}
+            {/* Dashboard */}
+            <div className="relative rounded-3xl border border-white/80 bg-white/85 p-5 shadow-2xl shadow-blue-900/10 backdrop-blur-xl sm:p-7">
 
-          </button>
+              <div className="grid gap-4 sm:grid-cols-2">
+
+                {/* ATS SCORE */}
+                <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
+
+                  <p className="text-sm font-bold text-slate-800">
+                    ATS Score
+                  </p>
+
+                  <div className="mx-auto mt-5 flex h-36 w-36 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 via-cyan-400 to-emerald-400 p-[9px]">
+                    <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-white">
+                      <span className="text-4xl font-extrabold text-slate-900">
+                        87
+                      </span>
+                      <span className="text-sm font-medium text-slate-500">
+                        /100
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="mt-3 text-center font-bold text-emerald-500">
+                    Excellent
+                  </p>
+
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+                    <div className="h-full w-[87%] rounded-full bg-gradient-to-r from-blue-500 to-emerald-400" />
+                  </div>
+
+                </div>
+
+
+                {/* JOB MATCH */}
+                <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
+
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-2xl">
+                      🎯
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-bold text-slate-800">
+                        Job Match
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        Your compatibility
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5">
+                    <span className="text-4xl font-extrabold text-blue-600">
+                      92
+                    </span>
+                    <span className="ml-1 text-sm font-semibold text-slate-500">
+                      /100
+                    </span>
+                  </div>
+
+                  <p className="mt-1 font-bold text-emerald-500">
+                    Great Match
+                  </p>
+
+                  <div className="mt-5 space-y-2">
+
+                    <div className="flex items-center justify-between rounded-xl bg-blue-50 px-3 py-2 text-xs">
+                      <span className="text-slate-600">
+                        Required Skills
+                      </span>
+                      <span className="font-bold text-blue-600">
+                        12
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between rounded-xl bg-emerald-50 px-3 py-2 text-xs">
+                      <span className="text-slate-600">
+                        Matched Skills
+                      </span>
+                      <span className="font-bold text-emerald-600">
+                        10
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between rounded-xl bg-red-50 px-3 py-2 text-xs">
+                      <span className="text-slate-600">
+                        Missing Skills
+                      </span>
+                      <span className="font-bold text-red-500">
+                        2
+                      </span>
+                    </div>
+
+                  </div>
+                </div>
+
+              </div>
+
+
+              {/* KEY INSIGHTS */}
+              <div className="mt-4 rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
+
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-xl">
+                    💡
+                  </div>
+
+                  <p className="font-bold text-slate-800">
+                    Key Insights
+                  </p>
+                </div>
+
+                <div className="mt-4 space-y-3 text-sm">
+
+                  <div className="flex items-center gap-3">
+                    <span className="text-emerald-500">✓</span>
+                    <span className="text-slate-600">
+                      Strong keyword optimization
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span className="text-emerald-500">✓</span>
+                    <span className="text-slate-600">
+                      Good section coverage
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span className="text-amber-500">⚠</span>
+                    <span className="text-slate-600">
+                      Add more quantified achievements
+                    </span>
+                  </div>
+
+                </div>
+              </div>
+
+
+              {/* File badges */}
+              <div className="absolute -right-5 top-20 hidden flex-col gap-3 sm:flex">
+
+                <div className="rounded-xl bg-red-500 px-3 py-2 text-xs font-bold text-white shadow-lg">
+                  PDF
+                </div>
+
+                <div className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white shadow-lg">
+                  DOCX
+                </div>
+
+              </div>
+
+            </div>
+          </div>
 
         </div>
-
       </section>
 
 
-      {/* ================= RESULTS ================= */}
+      {/* ================= FEATURES ================= */}
+      <section
+        id="features"
+        className="bg-white px-6 py-20 lg:px-8 lg:py-28"
+      >
 
-      {analysis && (
+        <div className="mx-auto max-w-7xl">
 
-        <section className="max-w-6xl mx-auto px-6 pb-20">
+          {/* Section heading */}
+          <div className="mx-auto max-w-3xl text-center">
 
-
-          {/* ================= ATS SCORE ================= */}
-
-          <div className="bg-white border border-slate-200 rounded-3xl p-10 text-center shadow-sm">
-
-            <div className="text-sm uppercase tracking-wider text-slate-500 font-semibold">
-              ATS Score
+            <div className="mb-5 inline-flex rounded-full bg-blue-50 px-5 py-2 text-sm font-semibold text-blue-600">
+              Why Choose ResumeScore?
             </div>
 
-            <div className="mt-3">
-
-              <span className="text-7xl font-bold text-blue-600">
-                {analysis.score}
-              </span>
-
-              <span className="text-3xl text-slate-400">
-                /100
-              </span>
-
-            </div>
-
-            <div className="text-2xl font-bold mt-3">
-              {analysis.rating}
-            </div>
-
-            <div className="text-slate-500 mt-2">
-              Target field: {analysis.careerField}
-            </div>
-
-          </div>
-
-
-          {/* ================= SCORE BREAKDOWN ================= */}
-
-          <div className="bg-white border border-slate-200 rounded-3xl p-8 mt-6">
-
-            <h2 className="text-2xl font-bold mb-8">
-              📊 Score Breakdown
+            <h2 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
+              Everything You Need to Get Noticed
             </h2>
 
-            <ScoreBar
-              label="Contact Information"
-              value={analysis.breakdown.contact}
-              max={10}
-            />
-
-            <ScoreBar
-              label="Resume Sections"
-              value={analysis.breakdown.sections}
-              max={20}
-            />
-
-            <ScoreBar
-              label="Career Keywords"
-              value={analysis.breakdown.keywords}
-              max={35}
-            />
-
-            <ScoreBar
-              label="Experience"
-              value={analysis.breakdown.experience}
-              max={8}
-            />
-
-            <ScoreBar
-              label="Projects"
-              value={analysis.breakdown.projects}
-              max={8}
-            />
-
-            <ScoreBar
-              label="Education"
-              value={analysis.breakdown.education}
-              max={7}
-            />
-
-            <ScoreBar
-              label="Action Verbs"
-              value={analysis.breakdown.actionVerbs}
-              max={5}
-            />
-
-            <ScoreBar
-              label="Quantifiable Achievements"
-              value={analysis.breakdown.quantification}
-              max={5}
-            />
-
-            <ScoreBar
-              label="Resume Length"
-              value={analysis.breakdown.length}
-              max={5}
-            />
-
-          </div>
-
-
-          {/* ================================================= */}
-          {/* JOB MATCH SCORE                                   */}
-          {/* ================================================= */}
-
-          {jobDescription.trim() !== "" && analysis.jobMatch && (
-
-            <div className="bg-white border border-slate-200 rounded-3xl p-8 mt-6">
-
-              {/* JOB MATCH HEADER */}
-
-              <div className="text-center">
-
-                <div className="text-sm uppercase tracking-wider text-slate-500 font-semibold">
-                  Resume vs Job Description
-                </div>
-
-                <h2 className="text-3xl font-bold mt-2">
-                  🎯 Job Match Score
-                </h2>
-
-                <div className="mt-5">
-
-                  <span className="text-6xl font-bold text-blue-600">
-                    {analysis.jobMatch.score}
-                  </span>
-
-                  <span className="text-2xl text-slate-400">
-                    /100
-                  </span>
-
-                </div>
-
-                <p className="text-slate-500 mt-2">
-                  How closely your resume matches the job description
-                </p>
-
-              </div>
-
-
-              {/* MATCHED SKILLS */}
-
-              <div className="mt-10">
-
-                <h3 className="text-xl font-bold mb-4">
-                  ✅ Matched Job Skills
-                </h3>
-
-
-                {analysis.jobMatch.matchedSkills.length > 0 ? (
-
-                  <div className="flex flex-wrap gap-3">
-
-                    {analysis.jobMatch.matchedSkills.map(
-                      (skill, index) => (
-
-                        <span
-                          key={index}
-                          className="px-4 py-2 bg-green-50 text-green-700 border border-green-200 rounded-full"
-                        >
-                          ✓ {skill}
-                        </span>
-
-                      )
-                    )}
-
-                  </div>
-
-                ) : (
-
-                  <p className="text-slate-500">
-                    No matching skills were detected.
-                  </p>
-
-                )}
-
-              </div>
-
-
-              {/* MISSING SKILLS */}
-
-              <div className="mt-10">
-
-                <h3 className="text-xl font-bold mb-4">
-                  ⚠️ Missing Job Skills
-                </h3>
-
-
-                {analysis.jobMatch.missingSkills.length > 0 ? (
-
-                  <div className="flex flex-wrap gap-3">
-
-                    {analysis.jobMatch.missingSkills.map(
-                      (skill, index) => (
-
-                        <span
-                          key={index}
-                          className="px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-full"
-                        >
-                          {skill}
-                        </span>
-
-                      )
-                    )}
-
-                  </div>
-
-                ) : (
-
-                  <p className="text-green-600">
-                    🎉 Your resume contains all detected skills from this
-                    job description.
-                  </p>
-
-                )}
-
-              </div>
-
-
-              {/* JOB MATCH STATISTICS */}
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-10">
-
-
-                <div className="bg-slate-50 rounded-2xl p-6 text-center">
-
-                  <div className="text-3xl font-bold">
-                    {analysis.jobMatch.requiredSkills.length}
-                  </div>
-
-                  <div className="text-slate-500 mt-2">
-                    Skills Required
-                  </div>
-
-                </div>
-
-
-                <div className="bg-green-50 rounded-2xl p-6 text-center">
-
-                  <div className="text-3xl font-bold text-green-600">
-                    {analysis.jobMatch.matchedSkills.length}
-                  </div>
-
-                  <div className="text-slate-500 mt-2">
-                    Skills Matched
-                  </div>
-
-                </div>
-
-
-                <div className="bg-red-50 rounded-2xl p-6 text-center">
-
-                  <div className="text-3xl font-bold text-red-600">
-                    {analysis.jobMatch.missingSkills.length}
-                  </div>
-
-                  <div className="text-slate-500 mt-2">
-                    Skills Missing
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          )}
-
-
-          {/* ================= QUICK STATS ================= */}
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
-
-            <StatCard
-              value={analysis.wordCount}
-              label="Words"
-            />
-
-
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 min-h-[160px]">
-
-              <div className="flex flex-wrap gap-2 justify-center max-h-[95px] overflow-y-auto">
-
-                {analysis.matchedKeywords.length > 0 ? (
-
-                  analysis.matchedKeywords.map(
-                    (keyword, index) => (
-
-                      <span
-                        key={index}
-                        className="px-3 py-1 bg-green-50 text-green-700 border border-green-200 rounded-full text-sm"
-                      >
-                        {keyword}
-                      </span>
-
-                    )
-                  )
-
-                ) : (
-
-                  <span className="text-slate-400">
-                    No matching keywords
-                  </span>
-
-                )}
-
-              </div>
-
-              <div className="text-slate-500 text-center mt-4">
-                Keywords Found
-              </div>
-
-            </div>
-
-
-            <StatCard
-              value={analysis.totalKeywords}
-              label="Keywords Checked"
-            />
-
-          </div>
-
-
-          {/* ================= MATCHING SKILLS ================= */}
-
-          <div className="bg-white border border-slate-200 rounded-3xl p-8 mt-6">
-
-            <h2 className="text-2xl font-bold mb-5">
-              ✅ Matching Skills
-            </h2>
-
-
-            <div className="flex flex-wrap gap-3">
-
-              {analysis.matchedKeywords.map(
-                (keyword, index) => (
-
-                  <span
-                    key={index}
-                    className="px-4 py-2 bg-green-50 text-green-700 border border-green-200 rounded-full"
-                  >
-                    ✓ {keyword}
-                  </span>
-
-                )
-              )}
-
-            </div>
-
-          </div>
-
-
-          {/* ================= MISSING KEYWORDS ================= */}
-
-          <div className="bg-white border border-slate-200 rounded-3xl p-8 mt-6">
-
-            <h2 className="text-2xl font-bold mb-5">
-              ⚠️ Missing Relevant Skills
-            </h2>
-
-
-            {analysis.missingKeywords.length > 0 ? (
-
-              <div className="flex flex-wrap gap-3">
-
-                {analysis.missingKeywords.map(
-                  (keyword, index) => (
-
-                    <span
-                      key={index}
-                      className="px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-full"
-                    >
-                      {keyword}
-                    </span>
-
-                  )
-                )}
-
-              </div>
-
-            ) : (
-
-              <p className="text-green-600">
-                Excellent! No relevant skills are missing.
-              </p>
-
-            )}
-
-
-            <p className="text-sm text-slate-500 mt-5">
-              Only add skills that you genuinely know or have experience
-              with.
+            <p className="mt-5 text-lg leading-8 text-slate-500">
+              Powerful resume analysis to help you create an ATS-friendly
+              resume and improve your chances of landing interviews.
             </p>
 
           </div>
 
 
-          {/* ================= STRENGTHS ================= */}
+          {/* Feature cards */}
+          <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
 
-          <ResultSection
-            title="💪 Strengths"
-            items={analysis.strengths}
-            type="success"
-          />
+            <FeatureCard
+              icon="🎯"
+              title="ATS Score Analysis"
+              description="Get your overall ATS score and understand how well your resume performs."
+              iconStyle="blue"
+            />
 
+            <FeatureCard
+              icon="🔍"
+              title="Keyword Matching"
+              description="Find matched and missing keywords from your target job description."
+              iconStyle="green"
+            />
 
-          {/* ================= IMPROVEMENTS ================= */}
+            <FeatureCard
+              icon="📄"
+              title="Detailed Breakdown"
+              description="See how each section, skill and factor contributes to your score."
+              iconStyle="purple"
+            />
 
-          <ResultSection
-            title="💡 Improvement Suggestions"
-            items={analysis.improvements}
-            type="info"
-          />
+            <FeatureCard
+              icon="💡"
+              title="Smart Suggestions"
+              description="Get personalized tips to improve your resume and increase your chances."
+              iconStyle="orange"
+            />
 
-
-          {/* ================= WARNINGS ================= */}
-
-          <ResultSection
-            title="⚠️ Warnings"
-            items={analysis.warnings}
-            type="warning"
-          />
-
-
-          {/* ================= RESUME SECTIONS ================= */}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-
-
-            <div className="bg-white border border-slate-200 rounded-3xl p-8">
-
-              <h2 className="text-2xl font-bold mb-5">
-                📑 Resume Sections
-              </h2>
-
-
-              <div className="space-y-3">
-
-                {analysis.sections.map(
-                  (section, index) => (
-
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 text-green-700"
-                    >
-
-                      <span>
-                        ✓
-                      </span>
-
-                      <span className="capitalize">
-                        {section}
-                      </span>
-
-                    </div>
-
-                  )
-                )}
-
-              </div>
-
-            </div>
-
-
-            <div className="bg-white border border-slate-200 rounded-3xl p-8">
-
-              <h2 className="text-2xl font-bold mb-5">
-                📌 Missing Sections
-              </h2>
-
-
-              {analysis.missingSections.length > 0 ? (
-
-                <div className="space-y-3">
-
-                  {analysis.missingSections.map(
-                    (section, index) => (
-
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 text-red-600"
-                      >
-
-                        <span>
-                          ✗
-                        </span>
-
-                        <span className="capitalize">
-                          {section}
-                        </span>
-
-                      </div>
-
-                    )
-                  )}
-
-                </div>
-
-              ) : (
-
-                <p className="text-green-600">
-                  All important sections are present.
-                </p>
-
-              )}
-
-            </div>
+            <FeatureCard
+              icon="🛡️"
+              title="Job Match Score"
+              description="Compare your skills with job requirements and see your match percentage."
+              iconStyle="cyan"
+            />
 
           </div>
+        </div>
+      </section>
 
 
-          {/* ================= ACTION VERBS ================= */}
+      {/* ================= HOW IT WORKS ================= */}
+      <section
+        id="about"
+        className="bg-gradient-to-b from-white to-blue-50 px-6 py-20 lg:px-8 lg:py-24"
+      >
 
-          <div className="bg-white border border-slate-200 rounded-3xl p-8 mt-6">
+        <div className="mx-auto max-w-6xl">
 
-            <h2 className="text-2xl font-bold mb-5">
-              🚀 Action Verbs Detected
+          <div className="mx-auto max-w-2xl text-center">
+
+            <div className="mb-5 inline-flex rounded-full bg-blue-100 px-5 py-2 text-sm font-semibold text-blue-600">
+              Simple & Easy
+            </div>
+
+            <h2 className="text-4xl font-extrabold text-slate-900">
+              Analyze Your Resume in 3 Steps
             </h2>
 
+            <p className="mt-4 text-slate-500">
+              No complicated setup. Upload your resume and get actionable
+              insights within seconds.
+            </p>
 
-            <div className="flex flex-wrap gap-3">
+          </div>
 
-              {analysis.detectedActionVerbs.length > 0 ? (
 
-                analysis.detectedActionVerbs.map(
-                  (verb, index) => (
+          <div className="mt-14 grid gap-6 md:grid-cols-3">
 
-                    <span
-                      key={index}
-                      className="px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-full"
-                    >
-                      {verb}
-                    </span>
+            <StepCard
+              number="01"
+              title="Upload Resume"
+              description="Upload your PDF or DOCX resume to ResumeScore."
+            />
 
-                  )
-                )
+            <StepCard
+              number="02"
+              title="Add Job Details"
+              description="Choose your career field and optionally add a job description."
+            />
 
-              ) : (
+            <StepCard
+              number="03"
+              title="Get Your Score"
+              description="Receive your ATS score, job match, keywords and improvement suggestions."
+            />
 
-                <p className="text-slate-500">
-                  No strong action verbs detected.
-                </p>
+          </div>
 
-              )}
 
+          <div className="mt-14 text-center">
+
+            <Link
+              href="/analyzer"
+              className="inline-flex items-center gap-3 rounded-full bg-blue-600 px-9 py-4 font-bold text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-1 hover:bg-blue-700"
+            >
+              Start Analyzing
+              <span>→</span>
+            </Link>
+
+          </div>
+
+        </div>
+      </section>
+
+
+      {/* ================= FOOTER ================= */}
+      <footer className="border-t border-slate-200 bg-white">
+
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 px-6 py-8 sm:flex-row lg:px-8">
+
+          <div>
+            <p className="text-lg font-extrabold">
+              <span className="text-slate-900">Resume</span>
+              <span className="text-blue-600">Score</span>
+            </p>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Build a stronger resume. Get hired.
+            </p>
+          </div>
+
+
+          <div className="flex items-center gap-3">
+
+            <div className="h-10 w-10 overflow-hidden rounded-full border-2 border-white shadow-md ring-1 ring-slate-200">
+              <img
+                src="/profile.jpg"
+                alt="Kumar Mohit"
+                className="h-full w-full object-cover object-top"
+              />
+            </div>
+
+            <div>
+              <p className="text-xs text-slate-500">
+                Made by
+              </p>
+              <p className="text-sm font-bold text-blue-600">
+                KUMAR MOHIT
+              </p>
             </div>
 
           </div>
 
+        </div>
 
-          {/* ================= ACHIEVEMENTS ================= */}
+        <div className="border-t border-slate-100 py-4 text-center text-xs text-slate-400">
+          © {new Date().getFullYear()} ResumeScore. All rights reserved.
+        </div>
 
-          <div className="bg-white border border-slate-200 rounded-3xl p-8 mt-6">
-
-            <h2 className="text-2xl font-bold mb-5">
-              📈 Quantifiable Achievements
-            </h2>
-
-
-            {analysis.hasQuantifiableAchievements ? (
-
-              <p className="text-green-600">
-                ✓ Your resume contains measurable information.
-              </p>
-
-            ) : (
-
-              <p className="text-orange-600">
-                Consider adding measurable results such as percentages,
-                accuracy, users, performance improvements, or numbers.
-              </p>
-
-            )}
-
-          </div>
-
-
-        </section>
-
-      )}
+      </footer>
 
     </main>
   );
 }
 
 
-/* ================================================= */
-/* SCORE BAR                                          */
-/* ================================================= */
+/* =========================================================
+   FEATURE CARD
+========================================================= */
 
-function ScoreBar({
-  label,
-  value,
-  max,
-}: {
-  label: string;
-  value: number;
-  max: number;
-}) {
-
-  const percentage = Math.min(
-    100,
-    Math.round((value / max) * 100)
-  );
-
-  return (
-
-    <div className="mb-7">
-
-      <div className="flex justify-between mb-2">
-
-        <span className="font-medium">
-          {label}
-        </span>
-
-        <span className="font-bold">
-          {value}/{max}
-        </span>
-
-      </div>
-
-
-      <div className="h-4 bg-slate-200 rounded-full overflow-hidden">
-
-        <div
-          className="h-full bg-blue-600 rounded-full transition-all"
-          style={{
-            width: `${percentage}%`,
-          }}
-        />
-
-      </div>
-
-    </div>
-
-  );
-}
-
-
-/* ================================================= */
-/* STAT CARD                                          */
-/* ================================================= */
-
-function StatCard({
-  value,
-  label,
-}: {
-  value: number;
-  label: string;
-}) {
-
-  return (
-
-    <div className="bg-white border border-slate-200 rounded-2xl p-6 min-h-[160px] flex flex-col justify-center text-center">
-
-      <div className="text-4xl font-bold">
-        {value}
-      </div>
-
-      <div className="text-slate-500 mt-2">
-        {label}
-      </div>
-
-    </div>
-
-  );
-}
-
-
-/* ================================================= */
-/* RESULT SECTION                                     */
-/* ================================================= */
-
-function ResultSection({
+function FeatureCard({
+  icon,
   title,
-  items,
-  type,
+  description,
+  iconStyle,
 }: {
+  icon: string;
   title: string;
-  items: string[];
-  type: "success" | "info" | "warning";
+  description: string;
+  iconStyle: "blue" | "green" | "purple" | "orange" | "cyan";
 }) {
 
   const styles = {
-    success: "bg-green-50 border-green-200",
-    info: "bg-blue-50 border-blue-200",
-    warning: "bg-orange-50 border-orange-200",
+    blue: "bg-blue-50 border-blue-100",
+    green: "bg-emerald-50 border-emerald-100",
+    purple: "bg-purple-50 border-purple-100",
+    orange: "bg-orange-50 border-orange-100",
+    cyan: "bg-cyan-50 border-cyan-100",
   };
 
   return (
+    <div className="group rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-xl">
 
-    <div
-      className={`border rounded-3xl p-8 mt-6 ${styles[type]}`}
-    >
+      <div
+        className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full border ${styles[iconStyle]} text-2xl transition group-hover:scale-110`}
+      >
+        {icon}
+      </div>
 
-      <h2 className="text-2xl font-bold mb-5">
+      <h3 className="mt-5 text-lg font-bold text-slate-900">
         {title}
-      </h2>
+      </h3>
 
-
-      {items.length > 0 ? (
-
-        <div className="space-y-3">
-
-          {items.map((item, index) => (
-
-            <div
-              key={index}
-              className="bg-white rounded-xl p-4 border border-slate-200"
-            >
-              {item}
-            </div>
-
-          ))}
-
-        </div>
-
-      ) : (
-
-        <p className="text-slate-500">
-          Nothing to report.
-        </p>
-
-      )}
+      <p className="mt-3 text-sm leading-6 text-slate-500">
+        {description}
+      </p>
 
     </div>
+  );
+}
 
+
+/* =========================================================
+   STEP CARD
+========================================================= */
+
+function StepCard({
+  number,
+  title,
+  description,
+}: {
+  number: string;
+  title: string;
+  description: string;
+}) {
+
+  return (
+    <div className="relative rounded-2xl border border-blue-100 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+
+      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-sm font-extrabold text-white shadow-md shadow-blue-600/20">
+        {number}
+      </div>
+
+      <h3 className="mt-6 text-xl font-bold text-slate-900">
+        {title}
+      </h3>
+
+      <p className="mt-3 leading-7 text-slate-500">
+        {description}
+      </p>
+
+    </div>
   );
 }
